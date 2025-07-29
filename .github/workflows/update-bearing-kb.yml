@@ -1,0 +1,24 @@
+name: Update Bearing KB
+on:
+  workflow_dispatch:
+  push:
+    paths: [ "content.md" ]
+  schedule:
+    - cron: '0 3 * * 1'   # каждый понедельник 06:00 MSK
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Push to Bitrix24
+        env:
+          BX_WEBHOOK: ${{ secrets.BX_WEBHOOK }}
+          SITE_ID:     ${{ secrets.BX_SITE_ID }}
+          BLOCK_ID:    ${{ secrets.BX_BLOCK_ID }}
+        run: |
+          curl -s -X POST "https://tdroks.bitrix24.ru/rest/1/${{ secrets.BX_WEBHOOK }}/landing.block.update.json" \
+            -d "block=${{ secrets.BX_BLOCK_ID }}" \
+            --data-urlencode "data[CONTENT]=$(cat content.md)"
+          curl -s -X POST "https://tdroks.bitrix24.ru/rest/1/${{ secrets.BX_WEBHOOK }}/landing.site.public.json" \
+            -d "id=${{ secrets.BX_SITE_ID }}"
